@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: demoEnviroSense
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/envirodb"
+    username: postgres
+    password: root
+  jpa:
+    hibernate.ddl-auto: update
+    show-sql: true
+    open-in-view: false
+server:
+  port: 8443
+  ssl:
+    enabled: true
+    key-store: C:/Users/Public/Downloads/smart/smart/src/main/java/org/smart/smart/security/utility/keystore.p12
+    key-store-password: changeit
+    key-store-type: PKCS12
+    key-alias: roua
+    key-password: changeit
+    protocol: TLS
+    enabled-protocols: TLSv1.2,TLSv1.3

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Pollution Map</title>
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBYcUnOJN18gemtRo7o_WP868R9otab17U"></script>
+        <style>
+            /* Add some styles for the map */
+            #map {
+                height: 500px;
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+    <h3>Pollution Mappppp</h3>
+    <div id="map"></div>
+        <script>
+            // Initialize and add the map
+            function initMap() {
+                const map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: 12,
+                    center: {lat: 0, lng: 0}, // Set initial center
+                });
+
+                // Example of adding markers
+                addMarker(map, {lat: 0, lng: 0}, "Pollution Level: Low");
+                addMarker(map, {lat: 0.01, lng: 0.01}, "Pollution Level: High");
+            }
+
+            // Function to add markers to the map
+            function addMarker(map, location, message) {
+                const marker = new google.maps.Marker({
+                    position: location,
+                    map: map,
+                });
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: message,
+                });
+
+                marker.addListener("click", () => {
+                    infoWindow.open(map, marker);
+                });
+            }
+
+            // Call initMap on page load
+            window.onload = initMap;
+        </script>
+    </body>
+</html>

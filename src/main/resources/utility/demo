@@ -1,0 +1,91 @@
+keytool -genkeypair -alias changeit -keyalg EC -keysize 256 -validity 3650 -dname "CN=localhost" -keypass changeit -keystore keystore.p12 -storetype PKCS12 -storepass changeit -ext SAN=DNS:localhost
+
+extract certification of server
+openssl pkcs12 -in keystore.p12 -clcerts -nokeys -out server-cert.pem
+extract private key
+openssl pkcs12 -in keystore.p12 -nocerts -nodes -out server-key.pem
+Extract the CA certificate (this will be the certificate authority's certificate, if included in the keystore):
+openssl pkcs12 -in keystore.p12 -cacerts -out ca-cert.pem
+
+
+mosquitto -p 1883 -v
+mosquitto_pub -h localhost -p 1883 -t sensor/data -m "Hello Mosquitto"
+mosquitto_sub -h localhost -p 1883 -t sensor/data
+mosquitto_pub -h localhost -p 1883 -t sensor/data -m "{\"temperature\": 11, \"gasVoltage\": 11, \"moistureVoltage\": 11, \"latitude\": 11, \"longitude\": 11}"
+
+
+Generate the Private Key for the CA
+openssl genpkey -algorithm RSA -out ca.key -aes256
+
+
+Generate the Self-Signed Certificate for the CA
+PEM PASS PHRASE :demoenvirosense
+openssl req -new -x509 -key ca.key -out ca.crt -days 3650
+PEM PASS PHRASE :demoenvirosense
+commun name: demoenvirosense
+
+Generate the Server Private Key
+
+openssl genpkey -algorithm RSA -out server.key -aes256
+Generate the Certificate Signing Request (CSR) for the Server
+Now you need to create a CSR (Certificate Signing Request) for the server:
+
+openssl req -new -key server.key -out server.csr
+commun name: localhost
+
+Sign the Server Certificate with the CA
+Now, sign the CSR using the CA certificate you created earlier. This generates the server certificate.
+
+openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -d
+
+mosquitto.conf:
+# Enable SSL/TLS
+listener 8883
+
+# Path to the CA certificate
+cafile C:/Users/rouam/Downloads/mqttssl/ca.crt
+
+# Path to the server certificate
+certfile C:/Users/rouam/Downloads/mqttssl/server.crt
+
+# Path to the server key
+keyfile C:/Users/rouam/Downloads/mqttssl/server.key
+
+
+Create a Client Certificate
+Step 3.1: Generate the Client Private Key
+bash
+Copier le code
+openssl genpkey -algorithm RSA -out client.key -aes256
+This creates the client’s private key (client.key).
+
+Step 3.2: Generate the Client CSR
+bash
+Copier le code
+openssl req -new -key client.key -out client.csr
+Again, you'll be prompted to provide information for the certificate.
+
+Step 3.3: Sign the Client Certificate with the CA
+Sign the client CSR using the CA's private key:
+
+bash
+Copier le code
+openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -days 365
+This will create:
+
+client.key: The client's private key.
+client.crt: The signed client certificate.
+4. Convert Client Certificate to PKCS12 Format (Optional)
+If you need the client certificate in PKCS12 format (.p12 or .pfx), which is used in your Spring Boot configuration, you can convert it with the following command:
+
+bash
+Copier le code
+openssl pkcs12 -export -in client.crt -inkey client.key -out client-cert.p12 -name "mqtt-client" -CAfile ca.crt -caname "CA"
+This command creates the client-cert.p12 file, which you will use in your Spring Boot configuration.
+password extra
+5. Create a Keystore for the Server (Optional for Java-based servers)
+If you're using Java (e.g., with KeyStore), you might want to convert the server certificate into a keystore format. You can use keytool to create a Java keystore:
+
+bash
+Copier le code
+keytool -genkey -keyalg RSA -alias server -keystore server.jks -validity 3650

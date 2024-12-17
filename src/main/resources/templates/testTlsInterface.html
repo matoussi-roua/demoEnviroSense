@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>testTlsInterface</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_ACTUAL_API_KEY"></script>
+    <style>
+        /* Add some styles for the map */
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<h3>testTlsInterface</h3>
+<div id="map"></div>
+<script>
+    // Initialize and add the map
+    function initMap() {
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 12,
+            center: {lat: 0, lng: 0}, // Set initial center
+        });
+
+        // Fetch sensor data from the backend
+        fetch('api/v1/data/submit') // Relative path if served by Spring Boot
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(sensor => {
+                    addMarker(map, {lat: sensor.latitude, lng: sensor.longitude},
+                        `Temperature: ${sensor.temperature}, Gas Voltage: ${sensor.gasVoltage}`);
+                });
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }
+
+    // Function to add markers to the map
+    function addMarker(map, location, message) {
+        const marker = new google.maps.Marker({
+            position: location,
+            map: map,
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+            content: message,
+        });
+
+        marker.addListener("click", () => {
+            infoWindow.open(map, marker);
+        });
+    }
+
+    // Call initMap on page load
+    window.onload = initMap;
+</script>
+</body>
+</html>
